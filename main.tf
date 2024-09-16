@@ -25,6 +25,20 @@ variable "worker_address" {
   description = "The address of the worker nodes"
 }
 
+module "pihole" {
+  source = "./pihole"
+  # Injecting PROVIDER variables
+  pve_tls_insecure     = var.pve_tls_insecure
+  pve_url              = var.pve_url
+  pve_token_id         = var.pve_token_id
+  pve_token_secret     = var.pve_token_secret
+  # Injecting SCRIPT variables
+  domain               = var.domain
+  cloud_init_username  = var.cloud_init_username
+  cloud_init_password  = var.cloud_init_password
+  cloud_init_sshkeys   = var.cloud_init_sshkeys
+}
+
 # ----------------------------------------------------------------
 
 resource "proxmox_vm_qemu" "cloudinit-test" {
