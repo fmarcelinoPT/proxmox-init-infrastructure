@@ -26,72 +26,73 @@ variable "worker_address" {
   description = "The address of the worker nodes"
 }
 
-resource "proxmox_vm_qemu" "new_vm" {
-  name = "new-vm"
-  desc = "Created from the ubuntu-server-24-04 template"
+# ----------------------------------------------------------------
 
-  target_node  = "zeus"
-  pool         = "dev"
-  clone        = "ubuntu-server-24-04"
-  full_clone   = true
+resource "proxmox_vm_qemu" "cloudinit-test" {
+    count = 2
+    vmid  = "40${count.index}"
+    name  = "k3s-m40${count.index}"
 
-  agent    = 1
+    # Node name has to be the same name as within the cluster
+    # this might not include the FQDN
+    target_node = "zeus"
 
-  os_type  = "ubuntu"
-  cores    = 2
-  sockets  = 1
-  cpu      = "kvm64"	# if empty 'host' is default
+    # The destination resource pool for the new VM
+    pool = "dev"
 
-  memory   = 2048
-  balloon  = 1024
+    # The template name to clone this vm from
+    clone        = "ubuntu-server-24-04"
+    full_clone   = true
 
-  # Set the boot disk paramters
-  bootdisk = "virtio0"
-  scsihw   = "virtio-scsi-pci"
+    # Activate QEMU agent for this VM
+    agent = 1
 
-  disks {
-    virtio {
-      virtio0 {
-        disk {
-          size    = 32
-          cache   = "writeback"
-          storage = "local-lvm"
+    os_type = "cloud-init"
+    cores = 2
+    sockets = 1
+    vcpus = 0
+    cpu = "kvm64"	# if empty 'host' is default
+    memory = 2048
+    scsihw = "virtio-scsi-pci" # "lsi"
+
+    # Setup the disk
+    disks {
+        ide {
+            ide2 {
+                cloudinit {
+                    storage = "local-lvm"
+                }
+            }
         }
-      }
+        virtio {
+            virtio0 {
+                disk {
+                    size            = 32
+                    cache           = "writeback"
+                    # storage         = "ceph-storage-pool"
+                    storage         = "local-lvm"
+                    # storage_type    = "rbd"
+                    iothread        = true
+                    discard         = true
+                }
+            }
+        }
     }
-  } # end disk
 
-  # Set the network
-  network {
-    model   = "virtio"
-    bridge  = "vmbr0"
-    macaddr = var.master_address[0]
-  } # end first network block
+    # Setup the network interface and assign a vlan tag: 256
+    network {
+        model   = "virtio"
+        bridge  = "vmbr0"
+        macaddr = var.master_address[count.index]
+    }
 
-  # Ignore changes to the network
-  ## MAC address is generated on every apply, causing
-  ## TF to think this needs to be rebuilt on every apply
-  lifecycle {
-    ignore_changes = [
-      network
-    ]
-  } # end lifecycle
+    # Setup the ip address using cloud-init.
+    boot = "order=virtio0"
+    # Keep in mind to use the CIDR notation for the ip.
+    # ipconfig0 = "ip=192.168.8.114/24,gw=192.168.8.1"
+    ipconfig0 = "ip=dhcp"
 
-  # ipconfig0 = "ip=192.168.8.150/24,gw=192.168.8.1"
+    ciuser = "ubuntu"
+    cipassword = "password"
 
-  # cicustom = <<-EOF
-  # #cloud-config
-  # network:
-  #   version: 2
-  #   ethernets:
-  #     eth0:
-  #       addresses:
-  #         - 192.168.8.150/24
-  #       gateway4: 192.168.8.1
-  # EOF
-
-}
-
-output "disk_info" {
-  value = proxmox_vm_qemu.new_vm.disks
 }
