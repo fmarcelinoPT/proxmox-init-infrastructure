@@ -11,8 +11,6 @@ terraform {
 
 provider "proxmox" {
   pm_api_url = "https://zeus.onemarc.io:8006/api2/json"
-  # pm_user    = "root@pam"
-  # pm_password = "hdesk666!"
   pm_api_token_id = "root@pam!mptd"
   pm_api_token_secret = "3b46b621-afe8-4ea2-87ae-1ef8526d4af7"
   pm_tls_insecure = true
