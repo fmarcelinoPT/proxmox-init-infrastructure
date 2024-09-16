@@ -4,6 +4,7 @@ terraform {
     proxmox = {
       source  = "telmate/proxmox"
       version = "3.0.1-rc4"  # Replace with the latest stable version
+      # version = "2.9.14"  # Replace with the latest stable version
     }
   }
 }
@@ -46,41 +47,50 @@ resource "proxmox_vm_qemu" "new_vm" {
   memory   = 2048
   balloon  = 1024
 
+  # Set the boot disk paramters
+  bootdisk = "virtio0"
   scsihw   = "virtio-scsi-pci"
-  bootdisk = "scsi0"
 
   disks {
-    scsi {
-      scsi0 {
+    virtio {
+      virtio0 {
         disk {
-          size            = 32
-          cache           = "writeback"
-          storage         = "local-lvm"
-          iothread        = true
-          discard         = true
+          size    = 32
+          cache   = "writeback"
+          storage = "local-lvm"
         }
       }
     }
-  }
-  
+  } # end disk
+
+  # Set the network
   network {
-    model = "virtio"
-    bridge = "vmbr0"
-    tag = 256
-  }
+    model   = "virtio"
+    bridge  = "vmbr0"
+    macaddr = var.master_address[0]
+  } # end first network block
 
-  ipconfig0 = "ip=192.168.8.150/24,gw=192.168.8.1"
+  # Ignore changes to the network
+  ## MAC address is generated on every apply, causing
+  ## TF to think this needs to be rebuilt on every apply
+  lifecycle {
+    ignore_changes = [
+      network
+    ]
+  } # end lifecycle
 
-  cicustom = <<-EOF
-  #cloud-config
-  network:
-    version: 2
-    ethernets:
-      eth0:
-        addresses:
-          - 192.168.8.150/24
-        gateway4: 192.168.8.1
-  EOF
+  # ipconfig0 = "ip=192.168.8.150/24,gw=192.168.8.1"
+
+  # cicustom = <<-EOF
+  # #cloud-config
+  # network:
+  #   version: 2
+  #   ethernets:
+  #     eth0:
+  #       addresses:
+  #         - 192.168.8.150/24
+  #       gateway4: 192.168.8.1
+  # EOF
 
 }
 
