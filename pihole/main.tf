@@ -54,8 +54,9 @@ resource "proxmox_vm_qemu" "pihole" {
 
   # Setup the ip address using cloud-init.
   # Keep in mind to use the CIDR notation for the ip.
-  # ipconfig0 = "ip=192.168.8.114/24,gw=192.168.8.1"
-  ipconfig0 = "ip=dhcp"
+  # ipconfig0 = "ip=dhcp"
+  ipconfig0 = "ip=192.168.8.10/24,gw=192.168.8.1"
+  nameserver = "8.8.8.8"
 
   # Use cloud-init for user and ssh keys
   ciuser     = var.cloud_init_username

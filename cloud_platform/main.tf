@@ -59,8 +59,8 @@ resource "proxmox_vm_qemu" "cloudinit-test" {
 
   # Setup the ip address using cloud-init.
   # Keep in mind to use the CIDR notation for the ip.
-  # ipconfig0 = "ip=192.168.8.114/24,gw=192.168.8.1"
   ipconfig0 = "ip=dhcp"
+  # ipconfig0 = "ip=192.168.8.114/24,gw=192.168.8.1"
 
   # Setup cloud init data
   ciuser     = var.cloud_init_username
