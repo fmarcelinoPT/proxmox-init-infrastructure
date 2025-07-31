@@ -76,3 +76,22 @@ module "cloud_platform" {
   master_address       = var.master_address
   worker_address       = var.worker_address
 }
+
+module "rhel" {
+  source = "./rhel"
+  # Injecting PROVIDER variables
+  pve_tls_insecure     = var.pve_tls_insecure
+  pve_url              = var.pve_url
+  pve_token_id         = var.pve_token_id
+  pve_token_secret     = var.pve_token_secret
+  target_node          = "hera"
+  target_storage       = "syn-lab"
+  # Injecting SCRIPT variables
+  domain               = var.domain
+  cloud_init_username  = var.cloud_init_username
+  cloud_init_password  = var.cloud_init_password
+  cloud_init_sshkeys   = var.cloud_init_sshkeys
+  # cloud platform variables
+  master_address       = var.master_address
+  worker_address       = var.worker_address
+}

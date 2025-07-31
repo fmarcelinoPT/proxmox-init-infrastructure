@@ -58,6 +58,16 @@ worker_address = [
 ]
 ```
 
+## Usage
+
+1. Specify a module to execute
+
+```bash
+terraform init -target=module.rhel
+terraform plan -target=module.rhel
+terraform apply -target=module.rhel
+```
+
 ## Contributing
 
 Contributions to this project are welcome. If you find any issues or have suggestions for improvements, please open an issue or submit a pull request.
